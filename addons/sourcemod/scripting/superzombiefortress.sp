@@ -19,7 +19,7 @@
 
 #include "include/superzombiefortress.inc"
 
-#define PLUGIN_VERSION				"4.7.6"
+#define PLUGIN_VERSION				"4.7.5"
 #define PLUGIN_VERSION_REVISION		"SVL"
 
 #define MAX_ATTRIBUTES_PER_ITEM		20
