@@ -277,6 +277,7 @@ bool Config_LoadClassesSection(KeyValues kv, ClientClasses classes)
 	classes.callback_damage = Config_GetFunction(kv, "callback_damage", classes.callback_damage);
 	classes.callback_attack = Config_GetFunction(kv, "callback_attack", classes.callback_attack);
 	classes.callback_death = Config_GetFunction(kv, "callback_death", classes.callback_death);
+	classes.callback_onkill = Config_GetFunction(kv, "callback_onkill", classes.callback_onkill);
 	
 	return true;
 }

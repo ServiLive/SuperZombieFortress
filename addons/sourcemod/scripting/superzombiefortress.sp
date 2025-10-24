@@ -236,6 +236,7 @@ enum struct ClientClasses
 	Function callback_damage;
 	Function callback_attack;
 	Function callback_death;
+	Function callback_onkill;
 	
 	//Infected
 	TFClassType iInfectedClass;
@@ -2741,15 +2742,13 @@ public Action OnPlayerRunCmd(int iClient, int &iButtons, int &iImpulse, float fV
 	if (!g_bEnabled)
 		return Plugin_Continue;
 	
-	if (IsValidLivingZombie(iClient))
+	// Also make the think function callback available for everyone, not just zombies. Who knows if the mercs might need it for something.
+	if (g_ClientClasses[iClient].callback_think != INVALID_FUNCTION)
 	{
-		if (g_ClientClasses[iClient].callback_think != INVALID_FUNCTION)
-		{
-			Call_StartFunction(null, g_ClientClasses[iClient].callback_think);
-			Call_PushCell(iClient);
-			Call_PushCellRef(iButtons);
-			Call_Finish();
-		}
+		Call_StartFunction(null, g_ClientClasses[iClient].callback_think);
+		Call_PushCell(iClient);
+		Call_PushCellRef(iButtons);
+		Call_Finish();
 	}
 	
 	//If an item was succesfully grabbed

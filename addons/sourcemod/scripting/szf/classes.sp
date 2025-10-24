@@ -30,6 +30,7 @@ void Classes_Refresh()
 	g_DefaultClasses.callback_damage = INVALID_FUNCTION;
 	g_DefaultClasses.callback_attack = INVALID_FUNCTION;
 	g_DefaultClasses.callback_death = INVALID_FUNCTION;
+	g_DefaultClasses.callback_onkill = INVALID_FUNCTION;
 	
 	g_iSurvivorClassCount = 0;
 	g_iZombieClassCount = 0;

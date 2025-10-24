@@ -277,18 +277,29 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 	g_iMaxHealth[iVictim] = -1;
 	g_bShouldBacteriaPlay[iVictim] = true;
 	
+	// Make the ondeath function call available for everyone, not just zombies.
+	if (g_ClientClasses[iVictim].callback_death != INVALID_FUNCTION)
+	{
+		Call_StartFunction(null, g_ClientClasses[iVictim].callback_death);
+		Call_PushCell(iVictim);
+		Call_PushCell(iKillers[0]);
+		Call_PushCell(iKillers[1]);
+		Call_Finish();
+	}
+
+	// onkill function call for those who have it
+	if (g_ClientClasses[iKillers[0]].callback_onkill != INVALID_FUNCTION)
+	{
+		Call_StartFunction(null, g_ClientClasses[iKillers[0]].callback_onkill);
+		Call_PushCell(iKillers[0]);
+		Call_PushCell(iKillers[1]);
+		Call_PushCell(iVictim);
+		Call_Finish();
+	}
+	
 	//Handle zombie death logic, all round states.
 	if (IsValidZombie(iVictim))
 	{
-		if (g_ClientClasses[iVictim].callback_death != INVALID_FUNCTION)
-		{
-			Call_StartFunction(null, g_ClientClasses[iVictim].callback_death);
-			Call_PushCell(iVictim);
-			Call_PushCell(iKillers[0]);
-			Call_PushCell(iKillers[1]);
-			Call_Finish();
-		}
-		
 		if (g_nInfected[iVictim] == Infected_Tank)	//Tank plays death sound global
 			Sound_PlayInfectedVoToAll(Infected_Tank, SoundVo_Death);
 		else
