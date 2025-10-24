@@ -20,7 +20,7 @@
 #include "include/superzombiefortress.inc"
 
 #define PLUGIN_VERSION				"4.7.5"
-#define PLUGIN_VERSION_REVISION		"manual"
+#define PLUGIN_VERSION_REVISION		"SVL"
 
 #define MAX_ATTRIBUTES_PER_ITEM		20
 #define MAX_CONTROL_POINTS			8
@@ -606,11 +606,11 @@ int g_iOffsetItemDefinitionIndex;
 
 public Plugin myinfo =
 {
-	name = "Super Zombie Fortress",
-	author = "42, Alex Turtle, Batfoxkid, Haxton Sale, Mikusch, sasch, wo, MekuCube (original)",
-	description = "Originally based off MekuCube's 1.05 version.",
+	name = "Servi Zombie Fortress",
+	author = "42, Alex Turtle, Batfoxkid, Haxton Sale, Mikusch, sasch, wo, MekuCube (original), Samuu (SVL Fork)",
+	description = "Fork de SZF para Servilive.",
 	version = PLUGIN_VERSION ... "." ... PLUGIN_VERSION_REVISION,
-	url = "https://github.com/redsunservers/SuperZombieFortress"
+	url = "https://github.com/ServiLive/SuperZombieFortress/tree/master"
 }
 
 ////////////////////////////////////////////////////////////
