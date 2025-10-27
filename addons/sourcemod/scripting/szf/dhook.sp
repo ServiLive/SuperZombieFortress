@@ -429,6 +429,8 @@ public MRESReturn DHook_SetWinningTeamPre(DHookParam hParams)
 
 public MRESReturn DHook_RoundRespawnPre()
 {
+	//PrintToChatAll("DHook_RoundRespawnPre Called, random number: %d", GetRandomInt(1, 100));
+	
 	if (g_nRoundState == SZFRoundState_Setup)
 		return MRES_Ignored;
 	
@@ -446,6 +448,11 @@ public MRESReturn DHook_RoundRespawnPre()
 		g_iMaxHealth[iClient] = -1;
 		g_flTimeStartAsZombie[iClient] = 0.0;
 		g_flDamageDealtAgainstTank[iClient] = 0.0;
+
+		SVL_DamageDealt[iClient] = 1.0;
+		SVL_DamageTaken[iClient] = 1.0;
+		User_ArmorStats[iClient].SetupArmor();
+		User_PerkStats[iClient].DisablePerks();
 	}
 	
 	for (int i = 0; i < view_as<int>(Infected_Count); i++)

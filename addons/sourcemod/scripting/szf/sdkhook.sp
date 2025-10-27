@@ -107,6 +107,9 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 		return Plugin_Stop;	// Prevent TF2 game allowing debris to damage victim, we want to handle our own damages
 	
 	bool bChanged = false;
+
+	StatusEffect_OnTakeDamage_TakenPositive(iVictim, iAttacker, flDamage);
+	StatusEffect_OnTakeDamage_TakenNegative(iVictim, iAttacker, flDamage);
 	
 	if (g_ClientClasses[iVictim].callback_damage != INVALID_FUNCTION)
 	{
@@ -129,6 +132,9 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 	
 	if (iVictim != iAttacker)
 	{
+		StatusEffect_OnTakeDamage_DealNegative(iVictim, iAttacker, flDamage);
+		StatusEffect_OnTakeDamage_DealPositive(iVictim, iAttacker, flDamage);
+
 		if (IsValidLivingClient(iAttacker) && g_ClientClasses[iAttacker].callback_attack != INVALID_FUNCTION)
 		{
 			Call_StartFunction(null, g_ClientClasses[iAttacker].callback_attack);
@@ -205,6 +211,13 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 				iDamageType |= DMG_PREVENT_PHYSICS_FORCE;
 		}
 	}
+
+	/*
+		ACA SE DEBERIAN EJECUTAR ONTAKEDAMAGES QUE SOLO IMPORTAN DESPUES DE LAS CALCULACIONES INICIALES
+	*/
+	StatusEffect_OnTakeDamagePostVictim(iVictim, iAttacker, flDamage);
+	StatusEffect_OnTakeDamagePostAttacker(iVictim, iAttacker, flDamage);
+	Armor_ReduceDamage(iVictim, flDamage, bChanged);
 	
 	if (Stun_IsPlayerStunned(iVictim))
 		Stun_Shake(iVictim, vecForce, flDamage * 8.0);

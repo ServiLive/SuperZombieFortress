@@ -45,20 +45,36 @@ public Action Event_RoundEnd(Event event, const char[] name, bool dontBroadcast)
 	SetGlow();
 	UpdateZombieDamageScale();
 	g_bTankRefreshed = false;
+
+	for (int i = 1; i <= MaxClients; i++)
+	{
+		if(IsValidClient(i))
+		{
+			SVL_DamageDealt[i] = 1.0;
+			SVL_DamageTaken[i] = 1.0;
+		}
+	}		
+
+	DeleteStatusEffectsFromAll();
 	
 	return Plugin_Continue;
 }
 
 public Action Event_PlayerInventoryUpdate(Event event, const char[] name, bool dontBroadcast)
 {
+	//PrintToChatAll("PlayerReset Called");
+	
 	if (!g_bEnabled)
 		return Plugin_Continue;
 	
 	int iClient = GetClientOfUserId(event.GetInt("userid"));
 	if (TF2_GetClientTeam(iClient) <= TFTeam_Spectator)
 		return Plugin_Continue;
+
+	User_ArmorStats[iClient].client = iClient;
+	User_PerkStats[iClient].client = iClient;
 	
-	Stun_EndPlayer(iClient);
+	Stun_EndPlayer(iClient)
 	
 	//Reset overlay
 	ClientCommand(iClient, "r_screenoverlay\"\"");
@@ -381,6 +397,8 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 				TF2_AddAmmo(iKillers[i], WeaponSlot_Primary, g_ClientClasses[iKillers[i]].iAmmo);
 		}
 	}
+
+	StatusEffectReset(iVictim, false);
 	
 	SetGlow();
 	

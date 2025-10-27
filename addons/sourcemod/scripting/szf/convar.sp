@@ -35,8 +35,6 @@ void ConVar_Init()
 	g_cvFrenzyTankChance = CreateConVar("sm_szf_frenzy_tank", "0.0", "% Chance of a Tank appearing instead of a frenzy.", _, true, 0.0, true, 1.0);
 	g_cvFrenzyRespawnStress = CreateConVar("sm_szf_frenzy_respawn_stress", "30.0", "Amount of seconds divided by playercount to add in frenzy respawn stress", _, true, 0.0, true, 1.0);
 	g_cvStunImmunity = CreateConVar("sm_szf_stun_immunity", "0.0", "How long until the survivor can be stunned again.", _, true, 0.0);
-	g_cvLastStandKingRuneDuration = CreateConVar("sm_szf_laststand_kingrune_duration", "-1.0", "How long the last survivor gets the King Rune, -1.0 for infinite.", _, true, -1.0);
-	g_cvLastStandDefenseDuration = CreateConVar("sm_szf_laststand_defense_duration", "30.0", "How long the last survivor gets the Defense Buff, -1.0 for infinite.", _, true, -1.0);
 	g_cvDispenserAmmoCooldown = CreateConVar("sm_szf_dispenser_ammo_cooldown", "4.0", "Cooldown before client could gain ammo from dispensers.", _, true, 0.0);
 	g_cvDispenserAmmoMax = CreateConVar("sm_szf_dispenser_ammo_max", "10", "Max amount of ticks dispenser could dispense before self-destructs.", _, true, 0.0);
 	g_cvDispenserHealRate = CreateConVar("sm_szf_dispenser_heal_rate", "0.4", "Heal rate multiplier for survivor's dispensers.", _, true, 0.0);

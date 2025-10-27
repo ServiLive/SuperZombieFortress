@@ -5,6 +5,16 @@
 static char g_sClassFiles[view_as<int>(TFClass_Engineer) + 1][16] = { "", "scout", "sniper", "soldier", "demo", "medic", "heavy", "pyro", "spy", "engineer" };
 static int g_iVoodooIndex[view_as<int>(TFClass_Engineer) + 1] =  {-1, 5617, 5625, 5618, 5620, 5622, 5619, 5624, 5623, 5621};
 static int g_iZombieSoulIndex[view_as<int>(TFClass_Engineer) + 1];
+static float OFF_THE_MAP[3] = {1182792704.0, 1182792704.0, -964690944.0};
+static int World_TextEntity[MAXPLAYERS+1];
+
+StringMap WeaponAttributes[MAXENTITIES + 1];
+
+stock void LAPUTAMADREEEEEE(char[] name)
+{
+    LogError("LA PUTA MAAAAADREEEEEEEEEE EL %s DEJO DE FUNCIONAAAAAR O ESTA ROTO O O FUNCIOAN NO SEEE AAAAAAAAA JOAAAAAAAQUEEEEEEEEEEEEELLLL", name);
+    PrintToChatAll("LA PUTA MAAAAADREEEEEEEEEE EL %s DEJO DE FUNCIONAAAAAR O ESTA ROTO O O FUNCIOAN NO SEEE AAAAAAAAA JOAAAAAAAQUEEEEEEEEEEEEELLLL", name);
+}
 
 ////////////////
 // Math
@@ -310,27 +320,101 @@ stock bool IsValidClient(int iClient)
 
 stock bool IsValidSurvivor(int iClient)
 {
-	return IsValidClient(iClient) && IsSurvivor(iClient);
+	return IsValidMulti(iClient, false, false, true, true, false, false);
 }
 
 stock bool IsValidZombie(int iClient)
 {
-	return IsValidClient(iClient) && IsZombie(iClient);
+	return IsValidMulti(iClient, false, false, false, false, true, true);
 }
 
 stock bool IsValidLivingClient(int iClient)
 {
-	return IsValidClient(iClient) && IsPlayerAlive(iClient);
+	return IsValidMulti(iClient, true, true, false, false, false, false);
 }
 
 stock bool IsValidLivingSurvivor(int iClient)
 {
-	return IsValidSurvivor(iClient) && IsPlayerAlive(iClient);
+	return IsValidMulti(iClient, true, true, true, true, false, false);
 }
 
 stock bool IsValidLivingZombie(int iClient)
 {
-	return IsValidZombie(iClient) && IsPlayerAlive(iClient);
+	return IsValidMulti(iClient, true, true, false, false, true, true);
+}
+
+stock bool IsValidMulti(int client, bool alivecheck = true, bool isAlive = true, bool survivorcheck = false, bool issurvivor = false, bool zombiecheck = false, bool iszombie = false, bool send = false)
+{
+	if (!IsValidClient(client))
+	{
+		return false;
+	}
+
+	if (alivecheck)
+	{
+		if (isAlive && !IsPlayerAlive(client))
+		{
+			if (send)
+			{
+				PrintToServer("%N no esta vivo! se necesita que lo este.", client);
+			}
+			return false;
+		}
+		if (!isAlive && IsPlayerAlive(client))
+		{
+			if (send)
+			{
+				PrintToServer("%N esta vivo! se necesita que no lo este.", client);
+			}
+			return false;
+		}
+    }
+
+	if (survivorcheck)
+	{
+		if (issurvivor && !IsSurvivor(client))
+		{
+			if (send)
+			{
+				PrintToServer("%N no es un sobreviviente! se necesita que lo sea.", client);
+			}
+			return false;
+		}
+		if (!issurvivor && IsSurvivor(client))
+		{
+			if (send)
+			{
+				PrintToServer("%N es un sobreviviente! se necesita que no lo sea.", client);
+			}
+			return false;
+		}
+    }
+
+	if (zombiecheck)
+	{
+		if (iszombie && !IsZombie(client))
+		{
+			if (send)
+			{
+				PrintToServer("%N no es un zombie! se necesita que lo sea.", client);
+			}
+			return false;
+		}
+		if (!iszombie && IsZombie(client))
+		{
+			if (send)
+			{
+				PrintToServer("%N es un zombie! se necesita que no lo sea.", client);
+			}
+			return false;
+		}
+    }
+
+	if (send)
+	{
+		PrintToServer("%N paso el check IVM!", client);
+	}
+	return true;
 }
 
 ////////////////
@@ -785,6 +869,7 @@ stock int TF2_CreateWeapon(int iClient, int iIndex, ConfigAttributes attribs = g
 	
 	if (IsValidEntity(iWeapon))
 	{
+		Attributes_EntityDestroyed(iWeapon);
 		TF2_WeaponApplyAttribute(iClient, iWeapon, attribs);
 		DispatchSpawn(iWeapon);
 	}
@@ -822,7 +907,9 @@ stock void TF2_WeaponApplyAttribute(int iClient, int iWeapon, ConfigAttributes a
 	for (int i = 0; i < attribs.iCount; i++)
 	{
 		if (!attribs.nClass[i] || attribs.nClass[i] == nClass)
-			TF2Attrib_SetByDefIndex(iWeapon, attribs.iIndex[i], attribs.flValue[i]);
+		{
+			Attributes_Set(iWeapon, attribs.iIndex[i], attribs.flValue[i])
+		}
 	}
 }
 
@@ -1313,16 +1400,772 @@ stock void DealDamage(int iAttacker, int iVictim, float flDamage)
 	SDKHooks_TakeDamage(iVictim, iAttacker, iAttacker, flDamage, DMG_PREVENT_PHYSICS_FORCE);
 }
 
-stock bool CanRecieveDamage(int iClient)
+stock bool CanRecieveDamage(int client)
 {
-	if (iClient <= 0 || !IsClientInGame(iClient))
+	if (!IsValidClient(client))
 		return true;
-	
-	if (TF2_IsPlayerInCondition(iClient, TFCond_Ubercharged))
-		return false;
-	
-	if (TF2_IsPlayerInCondition(iClient, TFCond_Bonked))
+
+	if((TF2_IsPlayerInCondition(client, TFCond_Ubercharged) || 
+		TF2_IsPlayerInCondition(client, TFCond_UberchargedCanteen) || 
+		TF2_IsPlayerInCondition(client, TFCond_UberchargedHidden) || 
+		TF2_IsPlayerInCondition(client, TFCond_UberchargedOnTakeDamage) || 
+		TF2_IsPlayerInCondition(client, TFCond_Bonked) || 
+		TF2_IsPlayerInCondition(client, TFCond_HalloweenGhostMode) || 
+		//TF2_IsPlayerInCondition(client, TFCond_MegaHeal) ||
+		GetEntProp(client, Prop_Data, "m_takedamage")))
 		return false;
 	
 	return true;
+}
+
+stock void ChangeDamageTakenBy(int client, float amount, float duration, bool Flat = false)
+{
+	if(!Flat)
+		SVL_DamageTaken[client] *= amount;
+	else
+		SVL_DamageTaken[client] += amount;
+
+	if(duration > 0.0)
+	{
+		Handle pack;
+		CreateDataTimer(duration, RevertDamageTakenAgain, pack, TIMER_FLAG_NO_MAPCHANGE);
+		WritePackCell(pack, GetClientUserId(client));
+		WritePackCell(pack, Flat);
+		WritePackFloat(pack, amount);
+	}
+}
+
+static Action RevertDamageTakenAgain(Handle final, any pack)
+{
+	ResetPack(pack);
+	int client = GetClientOfUserId(ReadPackCell(pack));
+	if(!IsValidClient(client) || g_nRoundState == SZFRoundState_End)
+		return Plugin_Stop;
+
+	bool Flat = ReadPackCell(pack);
+	float damagemulti = ReadPackFloat(pack);
+	
+	if (IsValidClient(client))
+	{
+		if(!Flat)
+			SVL_DamageTaken[client] /= damagemulti;
+		else
+			SVL_DamageTaken[client] -= damagemulti;
+	}
+	return Plugin_Continue;
+}
+
+stock void ChangeDamageDealtBy(int client, float amount, float duration = 0.0, bool Flat = false)
+{
+	if(!Flat)
+		SVL_DamageDealt[client] *= amount;
+	else
+		SVL_DamageDealt[client] += amount;
+	
+	if(duration > 0.0)
+	{
+		Handle pack;
+		CreateDataTimer(duration, RevertDamageDealtAgain, pack, TIMER_FLAG_NO_MAPCHANGE);
+		WritePackCell(pack, GetClientUserId(client));
+		WritePackCell(pack, Flat);
+		WritePackFloat(pack, amount);
+	}
+}
+
+static Action RevertDamageDealtAgain(Handle final, any pack)
+{
+	ResetPack(pack);
+	int client = GetClientOfUserId(ReadPackCell(pack));
+	if(!IsValidClient(client) || g_nRoundState == SZFRoundState_End)
+		return Plugin_Stop;
+
+	bool Flat = ReadPackCell(pack);
+	float damagemulti = ReadPackFloat(pack);
+	
+	if (IsValidClient(client))
+	{
+		if(!Flat)
+			SVL_DamageDealt[client] /= damagemulti;
+		else
+			SVL_DamageDealt[client] -= damagemulti;
+	}
+	return Plugin_Continue;
+}
+
+public void DebuffWorldTextUpdate(int client)
+{
+	if(b_IsEntityNeverTranmitted[client])
+	{
+		if(IsValidEntity(EntRefToEntIndex(World_TextEntity[client])))
+		{
+			Void_RemoveEntity(EntRefToEntIndex(World_TextEntity[client]));
+		}		
+		return;
+	}
+	char HealthText[32];
+	int HealthColour[4];
+
+	HealthColour[0] = 255;
+	HealthColour[1] = 255;
+	HealthColour[2] = 255;
+	HealthColour[3] = 255;
+
+	StatusEffects_HudAbove(client, HealthText, sizeof(HealthText));
+
+	if(!HealthText[0])
+	{
+		if(IsValidEntity(EntRefToEntIndex(World_TextEntity[client])))
+		{
+			Void_RemoveEntity(EntRefToEntIndex(World_TextEntity[client]));
+		}
+		return;
+	}
+	
+
+	if(IsValidEntity(EntRefToEntIndex(World_TextEntity[client])))
+	{
+		//	char sColor[32];
+		//	Format(sColor, sizeof(sColor), " %d %d %d %d ", HealthColour[0], HealthColour[1], HealthColour[2], HealthColour[3]);
+		//	DispatchKeyValue(EntRefToEntIndex(World_TextEntity[client]), "color", sColor);
+		// Colour will never be Edited probably.
+		DispatchKeyValue(EntRefToEntIndex(World_TextEntity[client]), "message", HealthText);
+	}
+	else
+	{
+		float Offset[3];
+
+		Offset[2] += 95.0;
+
+		Offset[2] *= GetEntPropFloat(EntRefToEntIndex(World_TextEntity[client]), Prop_Send, "m_flModelScale");
+		Offset[2] += 15.0;
+		int TextEntity = SpawnFormattedWorldText(HealthText, Offset, 16, HealthColour, client);
+		DispatchKeyValue(TextEntity, "font", "4");
+		World_TextEntity[client] = EntIndexToEntRef(TextEntity);
+	}
+}
+
+stock int SpawnFormattedWorldText(const char[] format, float origin[3], int textSize = 10, const int colour[4] = {255,255,255,255}, int entity_parent = -1, bool rainbow = false, bool teleport = false)
+{
+	int worldtext = CreateEntityByName("point_worldtext");
+	if(IsValidEntity(worldtext))
+	{
+		DispatchKeyValue(worldtext, "targetname", "servilive_szf");
+		DispatchKeyValue(worldtext, "message", format);
+		char intstring[8];
+		IntToString(textSize, intstring, sizeof(intstring));
+		DispatchKeyValue(worldtext, "textsize", intstring);
+
+		char sColor[32];
+		Format(sColor, sizeof(sColor), " %d %d %d %d ", colour[0], colour[1], colour[2], colour[3]);
+		DispatchKeyValue(worldtext,     "color", sColor);
+
+		DispatchSpawn(worldtext);
+		SetEdictFlags(worldtext, (GetEdictFlags(worldtext) & ~FL_EDICT_ALWAYS));	
+		DispatchKeyValue(worldtext, "orientation", "1");
+		if(rainbow)
+			DispatchKeyValue(worldtext, "rainbow", "1");
+		
+		if(entity_parent != -1 && !teleport)
+		{
+			float vector[3];
+			GetEntPropVector(entity_parent, Prop_Data, "m_vecAbsOrigin", vector);
+			
+			vector[0] += origin[0];
+			vector[1] += origin[1];
+			vector[2] += origin[2];
+
+			TeleportEntity(worldtext, vector, NULL_VECTOR, NULL_VECTOR);
+			SetParent(entity_parent, worldtext, "", origin);
+		}
+		else
+		{
+			if(teleport)
+			{
+				DataPack pack;
+				CreateDataTimer(0.1, TeleportTextTimer, pack, TIMER_REPEAT|TIMER_FLAG_NO_MAPCHANGE);
+				pack.WriteCell(EntIndexToEntRef(worldtext));
+				pack.WriteCell(EntIndexToEntRef(entity_parent));
+				pack.WriteFloat(origin[0]);
+				pack.WriteFloat(origin[1]);
+				pack.WriteFloat(origin[2]);
+			}
+			SDKCall_SetLocalOrigin(worldtext, origin);
+		}	
+	}
+	return worldtext;
+}
+
+public Action TeleportTextTimer(Handle timer, DataPack pack)
+{
+	pack.Reset();
+	int text_entity = EntRefToEntIndex(pack.ReadCell());
+	int parented_entity = EntRefToEntIndex(pack.ReadCell());
+	float vector_offset[3];
+	vector_offset[0] = pack.ReadFloat();
+	vector_offset[1] = pack.ReadFloat();
+	vector_offset[2] = pack.ReadFloat();
+	if(IsValidEntity(text_entity) && IsValidEntity(parented_entity))
+	{
+		float vector[3];
+		GetEntPropVector(parented_entity, Prop_Data, "m_vecAbsOrigin", vector);
+		
+		vector[0] += vector_offset[0];
+		vector[1] += vector_offset[1];
+		vector[2] += vector_offset[2];
+
+		SDKCall_SetLocalOrigin(text_entity,vector);
+		return Plugin_Continue;
+	}
+	else
+	{
+		return Plugin_Stop;
+	}
+	
+}
+
+stock void SetParent(int iParent, int iChild, const char[] szAttachment = "", const float vOffsets[3] = {0.0,0.0,0.0}, bool maintain_anyways = false)
+{
+	SetVariantString("!activator");
+	AcceptEntityInput(iChild, "SetParent", iParent, iChild);
+	
+	if (szAttachment[0] != '\0') // Use at least a 0.01 second delay between SetParent and SetParentAttachment inputs.
+	{
+		if (szAttachment[0]) // do i even have anything?
+		{
+			SetVariantString(szAttachment); // "head"
+
+			if (maintain_anyways || !AreVectorsEqual(vOffsets, view_as<float>({0.0,0.0,0.0}))) // NULL_VECTOR
+			{
+				if(!maintain_anyways)
+				{
+					float Vecpos[3];
+
+					Vecpos = vOffsets;
+					SDKCall_SetLocalOrigin(iChild,Vecpos);
+				}
+				AcceptEntityInput(iChild, "SetParentAttachmentMaintainOffset", iParent, iChild);
+			}
+			else
+			{
+				AcceptEntityInput(iChild, "SetParentAttachment", iParent, iChild);
+			}
+		}
+	}
+}
+
+stock bool AreVectorsEqual(const float vVec1[3], const float vVec2[3])
+{
+	return (vVec1[0] == vVec2[0] && vVec1[1] == vVec2[1] && vVec1[2] == vVec2[2]);
+}
+
+stock void SDKCall_SetLocalOrigin(int index, float localOrigin[3])
+{
+	if(g_hSetLocalOrigin)
+	{
+		SDKCall(g_hSetLocalOrigin, index, localOrigin);
+	}
+}
+
+stock void SelfHealClient(int client, float heal, float maxoverheal = 1.5, bool healtype = false, bool overhealtype = false, bool notify = true)
+{
+    if(!IsValidMulti(client, true, true))
+        return;
+    
+    int active = GetEntPropEnt(client, Prop_Send, "m_hActiveWeapon");
+    if(IsValidEntity(active))
+        if(Attributes_GetOnWeapon(client, active, 236))
+            return;
+
+    if(!overhealtype)
+    {
+        // Penalizaciones de overheal en el jugador
+        maxoverheal *= Attributes_GetOnPlayer(client, 800, true);
+        if(IsValidEntity(active))
+            maxoverheal *= Attributes_GetOnWeapon(client, active, 853, true);                   
+    }
+    
+    if(maxoverheal < 1.0)
+        maxoverheal = 1.0;
+
+    // Bonuses
+    heal *= Attributes_GetOnPlayer(client, 70, true) *
+            Attributes_GetOnPlayer(client, 526, true) *
+            (1.0 + (0.25 * (Attributes_GetOnPlayer(client, 493))));
+        
+    if(!healtype)
+    {
+        // Penalizaciones
+        heal *= Attributes_GetOnPlayer(client, 69, true) *
+                Attributes_GetOnPlayer(client, 734, true) *
+                Attributes_GetOnPlayer(client, 740, true);
+
+        if(IsValidEntity(active))
+            heal *= Attributes_GetOnWeapon(client, active, 854, true);
+    }
+
+    int maxhealth = RoundFloat(float(SDKCall_GetMaxHealth(client)) * maxoverheal);
+    int health = GetClientHealth(client);
+	if(health < maxhealth)
+	{
+        if(health+RoundFloat(heal) >= maxhealth)
+        {
+            heal = float(maxhealth - health);
+        }
+    }
+
+    if(heal >= 0.5 && GetClientHealth(client) < maxhealth)
+    {
+		if(GetClientHealth(client) >= maxhealth)
+        {
+            TF2Util_TakeHealth(client, 1.0, (DMG_BULLET));
+            SetEntityHealth(client, maxhealth);
+        }
+        else
+        {
+            TF2Util_TakeHealth(client, heal, (DMG_BULLET));
+        }
+
+		if(notify)
+		{
+			Event event = CreateEvent("player_healonhit", true);
+			event.SetInt("entindex", client);
+			event.SetInt("amount", RoundFloat(heal));
+			event.Fire();
+		}
+    }
+}
+
+stock void Void_RemoveEntity(int entity)
+{
+	if(IsValidEntity(entity) && entity > MaxClients)
+	{
+		TeleportEntity(entity, OFF_THE_MAP, NULL_VECTOR, NULL_VECTOR);
+		AcceptEntityInput(entity, "Kill");
+		RemoveEntity(entity);
+	}
+}
+
+stock Action Timer_RemoveEntity(Handle Timer_RemoveEntity, int Ent)
+{
+	int entity = EntRefToEntIndex(Ent);
+	Void_RemoveEntity(entity);
+
+	return Plugin_Stop;
+}
+
+stock float CountPlayers(TFTeam team = TFTeam_Red, bool alive, bool survivor, bool zombie)
+{
+	//dont be 0
+	float ScaleReturn = 0.01;
+	for(int client=1; client<=MaxClients; client++)
+	{
+		if(IsValidMulti(client, alive, _, survivor, true, zombie, true))
+		{ 
+			if(TF2_GetClientTeam(client) == team)
+			{
+				ScaleReturn += 1.0;
+			}
+		}
+	}
+	
+	return ScaleReturn;
+}
+
+stock bool Attribute_ServerSide(int attribute)
+{
+	if(attribute > 3999)
+		return true;
+	
+	switch(attribute)
+	{
+		/*
+
+		Various attributes that are not needed as actual attributes.
+		*/
+		case 526,733, 309, 777, 701, 805, 180, 830, 785, 405, 527, 319, 286,287 , 95 , 93,8:
+		{
+			return true;
+		}
+
+		case 57, 190, 191, 218, 366, 651,33,731,719,544,410,786,3002,3000,149,208,638,17,71,868,122,225, 224,205,206, 412:
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+stock bool Attribute_IntAttribute(int attribute)
+{
+	switch(attribute)
+	{
+		case 314, 834, 866, 867:
+			return true;
+	}
+
+	return false;
+}
+
+bool Attribute_DontSaveAsIntAttribute(int attribute)
+{
+	switch(attribute)
+	{
+		//this attrib is a float, but saves as an int, for stuff thats additional, not multi.
+		case 314:
+			return true;
+	}
+
+	return false;
+}
+
+void Attributes_EntityDestroyed(int entity)
+{
+	delete WeaponAttributes[entity];
+}
+
+int ReplaceAttribute_Internally(int attribute)
+{
+	switch(attribute)
+	{
+		//replace dmg attrib with another, this is due to the MVM hud on pressing inspect fucking crashing you at high dmges
+		case 2:
+			return 1000;
+	}
+	return attribute;
+}
+stock bool Attributes_Has(int entity, int attrib)
+{
+	attrib = ReplaceAttribute_Internally(attrib);
+	if(!WeaponAttributes[entity])
+		return false;
+	
+	char buffer[6];
+	IntToString(attrib, buffer, sizeof(buffer));
+	return WeaponAttributes[entity].ContainsKey(buffer);
+}
+
+stock float Attributes_Get(int entity, int attrib, float defaul = 1.0)
+{
+	attrib = ReplaceAttribute_Internally(attrib);
+	if(WeaponAttributes[entity])
+	{
+		float value = defaul;
+
+		char buffer[6];
+		IntToString(attrib, buffer, sizeof(buffer));
+		if(WeaponAttributes[entity].GetValue(buffer, value))
+			return value;
+	}
+	
+	return defaul;
+}
+
+stock bool Attributes_Set(int entity, int attrib, float value, bool DoOnlyTf2Side = false)
+{
+	attrib = ReplaceAttribute_Internally(attrib);
+	if(!DoOnlyTf2Side)
+	{
+		if(!WeaponAttributes[entity])
+			WeaponAttributes[entity] = new StringMap();
+		
+		char buffer[6];
+		IntToString(attrib, buffer, sizeof(buffer));
+		WeaponAttributes[entity].SetValue(buffer, value);
+
+		if(Attribute_ServerSide(attrib))
+			return false;
+	}
+	
+	if(Attribute_IntAttribute(attrib) && !Attribute_DontSaveAsIntAttribute(attrib))
+	{
+		TF2Attrib_SetByDefIndex(entity, attrib, view_as<float>(RoundFloat(value)));
+		return true;
+	}
+	
+	
+	TF2Attrib_SetByDefIndex(entity, attrib, value);
+	return true;
+}
+
+stock void Attributes_SetAdd(int entity, int attrib, float amount)
+{
+	attrib = ReplaceAttribute_Internally(attrib);
+
+	char buffer[6];
+	IntToString(attrib, buffer, sizeof(buffer));
+
+	float value = 0.0;
+
+	if(WeaponAttributes[entity])
+	{
+		WeaponAttributes[entity].GetValue(buffer, value);
+	}
+	else
+	{
+		WeaponAttributes[entity] = new StringMap();
+	}
+
+	value += amount;
+
+	WeaponAttributes[entity].SetValue(buffer, value);
+	if(!Attribute_ServerSide(attrib))
+		Attributes_Set(entity, attrib, value, true);
+}
+
+stock void Attributes_SetMulti(int entity, int attrib, float amount)
+{
+	attrib = ReplaceAttribute_Internally(attrib);
+	char buffer[6];
+	IntToString(attrib, buffer, sizeof(buffer));
+
+	float value = 1.0;
+
+	if(WeaponAttributes[entity])
+	{
+		WeaponAttributes[entity].GetValue(buffer, value);
+	}
+	else
+	{
+		WeaponAttributes[entity] = new StringMap();
+	}
+
+	value *= amount;
+
+	WeaponAttributes[entity].SetValue(buffer, value);
+	if(!Attribute_ServerSide(attrib))
+		Attributes_Set(entity, attrib, value, true);
+}
+
+stock bool Attribute_IsMovementSpeed(int attrib)
+{
+	switch(attrib)
+	{
+		case 442, 107, 54:
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+stock bool Attributes_GetString(int entity, int attrib, char[] value, int length, int &size = 0)
+{
+	if(!WeaponAttributes[entity])
+		return false;
+
+	attrib = ReplaceAttribute_Internally(attrib);
+	char buffer[6];
+	IntToString(attrib, buffer, sizeof(buffer));
+	return WeaponAttributes[entity].GetString(buffer, value, length, size);
+}
+
+stock void Attributes_SetString(int entity, int attrib, const char[] value)
+{
+	if(!WeaponAttributes[entity])
+		WeaponAttributes[entity] = new StringMap();
+	
+	attrib = ReplaceAttribute_Internally(attrib);
+	
+	char buffer[6];
+	IntToString(attrib, buffer, sizeof(buffer));
+	WeaponAttributes[entity].SetString(buffer, value);
+}
+
+stock bool Attributes_Fire(int weapon)
+{
+	int clip = GetEntProp(weapon, Prop_Data, "m_iClip1");
+	if(clip > 0)
+	{
+		float gameTime = GetGameTime();
+		if(gameTime < GetEntPropFloat(weapon, Prop_Send, "m_flNextPrimaryAttack"))
+		{
+			float value = Attributes_Get(weapon, 298, 0.0);	// mod ammo per shot
+			if(value && clip < RoundFloat(value))
+			{
+				SetEntPropFloat(weapon, Prop_Send, "m_flNextPrimaryAttack", gameTime + 0.2);
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+stock int Attributes_Airdashes(int client)
+{
+	int weapon = GetEntPropEnt(client, Prop_Send, "m_hActiveWeapon");
+	return RoundFloat(Attributes_Get(weapon, 250, 0.0) + Attributes_GetOnPlayer(client, 393, false));	// air dash count, sniper rage DISPLAY ONLY
+}
+
+//override default
+stock float Attributes_GetOnPlayer(int client, int index, bool multi = true, bool noWeapons = false, float defaultValue = -1.0)
+{
+	bool AttribWasFound = false;
+	float defaul = multi ? 1.0 : 0.0;
+
+	float TempFind = Attributes_Get(client, index, -1.0);
+	float result;
+	if(TempFind != -1.0)
+	{
+		AttribWasFound = true;
+		result = TempFind;
+	}
+	else
+	{
+		result = defaul;
+	}
+	
+	int entity = MaxClients + 1;
+	
+	if(!noWeapons)
+	{
+		int active = GetEntPropEnt(client, Prop_Send, "m_hActiveWeapon");
+
+		int i;
+		while(TF2_GetItem(client, entity, i))
+		{
+			if(index != 128 && active != entity)
+			{
+				if(Attributes_Get(entity, 128, 0.0))
+					continue;
+			}
+			
+			float value = Attributes_Get(entity, index, defaul);
+			if(value != defaul)
+			{
+				AttribWasFound = true;
+				if(multi)
+				{
+					result *= value;
+				}
+				else
+				{
+					result += value;
+				}
+			}
+		}
+	}
+	if(!AttribWasFound)
+	{
+		if(defaultValue == -1.0)
+		{
+			return defaul;
+		}
+		else
+		{
+			return defaultValue;
+		}
+	}
+	return result;
+}
+
+stock float Attributes_GetOnWeapon(int client, int entity, int index, bool multi = true, float defaultstat = -1.0)
+{
+	float defaul = multi ? 1.0 : 0.0;
+	if(defaultstat != -1.0)
+	{	
+		defaul = defaultstat;
+	}
+	float result = Attributes_Get(client, index, defaul);
+	
+	if(entity > MaxClients)
+	{
+		float value = Attributes_Get(entity, index, defaul);
+		if(value != defaul)
+		{
+			if(multi)
+			{
+				result *= value;
+			}
+			else
+			{
+				result += value;
+			}
+		}
+	}
+	
+	return result;
+}
+
+stock bool TF2_GetItem(int client, int &weapon, int &pos)
+{
+	static int maxWeapons;
+	if(!maxWeapons)
+		maxWeapons = GetEntPropArraySize(client, Prop_Send, "m_hMyWeapons");
+	
+	if(pos < 0)
+		pos = 0;
+	
+	while(pos < maxWeapons)
+	{
+		weapon = GetEntPropEnt(client, Prop_Send, "m_hMyWeapons", pos);
+		pos++;
+		
+		if(weapon != -1)
+			return true;
+	}
+	return false;
+}
+
+stock void spawnRing(int client, float range, float modif_X, float modif_Y, float modif_Z, float override_pos[3] = {0.0, 0.0, 0.0}, int sprite = 0, int halo = 0, int glow = 0, int r, int g, int b, int alpha, int fps, float life, float width, float amp, int speed, float endRange = -69.0, bool personal = false)
+{
+	if (IsValidEntity(client))
+	{
+		float center[3];
+		
+		if (IsValidClient(client) && IsPlayerAlive(client))
+		{
+			GetClientAbsOrigin(client, center);
+		}
+		else if (client > MaxClients)
+		{
+			GetEntPropVector(client, Prop_Data, "m_vecAbsOrigin", center);
+		}
+		
+		if (IsValidClient(client) && !IsPlayerAlive(client))
+		{
+			return;
+		}
+		
+		if(sprite == 0)
+			sprite = BEAM_SPRITE;
+
+		if(halo == 0)
+			sprite = HALO_SPRITE;
+
+		if(glow == 0)
+			sprite = GLOW_SPRITE;
+
+		center[0] += modif_X;
+		center[1] += modif_Y;
+		center[2] += modif_Z;
+
+		if(override_pos[0] != 0.0 && override_pos[1] != 0.0 && override_pos[2] != 0.0)
+		{
+			center[0] = override_pos[0];
+			center[1] = override_pos[1];
+			center[2] = override_pos[2];
+		}
+		
+		int color[4];
+		color[0] = r;
+		color[1] = g;
+		color[2] = b;
+		color[3] = alpha;
+		
+		if (endRange == -69.0)
+		{
+			endRange = range + 0.5;
+		}
+		
+		TE_SetupBeamRingPoint(center, range, endRange, sprite, halo, glow, fps, life, width, amp, color, speed, 0);
+		if(personal)
+		{
+			TE_SendToClient(client);
+		}
+		else
+		{
+			TE_SendToAll();
+		}
+	}
 }

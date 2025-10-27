@@ -1,0 +1,145 @@
+"Phrases"
+{
+	"Perk Selection Tip"
+	{
+		//"#format"	"{1:s},{2:s},{3:s}"
+        "es"		"Presiona M2 para usar este Perk Deck."
+		"en"		"Press M2 to select this Perk Deck."
+	}
+    "Unexpected Perk Menu Close"
+    {
+        "es"		"{yellow}Tu menu de seleccion de perks se cerro de forma inesperada. Usa !szf_perks para re-abrir la seleccion."
+		"en"		"{yellow}Your perk selection menu closed unexpectedly. You can reopen it using !szf_perks."
+    }
+	"Perk Menu Open Warning"
+    {
+        "es"		"{yellow}ADVERTENCIA: Si la ronda empieza y sigues con el menu de perks abierto, se te pondra el Perk Deck default! {red}(Mercenario)"
+		"en"		"{yellow}WARNING: If the round starts and your perk deck menu is still open, you will be set to the Default Perk Deck! {red}(Mercenary)"
+    }
+	"Perk Selected"
+    {
+        "#format"	"{1:t}"
+		"es"		"{white}Seleccionaste el Perk Deck de {yellow}{1}{white}. Para cambiarlo, escribe !szf_perks en el chat.\n{orange}Re-abrir el menu deseleccionara tu Perk Deck elegido."
+		"en"		"You selected the {yellow}{1} {white}Perk Deck. To change it, type !szf_perks in the chat.\n{orange}Re-opening the menu will deselect your current perk deck."
+    }
+	"Mercenary"
+    {
+        "es"		"Mercenario"
+		"en"		"Mercenary"
+    }
+	"Mercenary Desc"
+    {
+        "es"		"El Perk Deck default. No tiene mucho en especial.\nSeleccionar un Perk Deck mostrara informacion mas especifica en el chat.\nPuedes usar !szf_perks para reabrir el menu una vez seleccionado un perk."
+		"en"		"Default Perk Deck. Isn't that much special.\nSelecting a Perk Deck will show more specific info in the chat.\nType !szf_perks to reopen the menu after selecting a perk."
+    }
+	"Mercenary Desc 1"
+    {
+        "es"		"{red}[MERCENARIO]: {yellow}⛉ (RES): +30％ | (TOTAL): 50％ HP max. | (CD): 3s si no te pegan.\n{lime}Acercarte a +3 aliados te dara un boost de +5％ DMG.\n{lime}anas +2％ HP/s si no recibes daño por 3s.\n{lime}Los buffs del ultimo en pie son mas fuertes."
+		"en"		"{red}[MERCENARY]: {yellow}⛉ (DEF): +30％ | (TOTAL): 50％ max HP. | (CD): 3s if not hurt.\n{lime}Being near +3 allies will give you a +5％ DMG boost.\n{lime}Gain +2％ HP/s if you don't take damage for 3s.\n{lime}Last man buffs are stronger."
+    }
+	"Armorer"
+    {
+        "es"		"Armero"
+		"en"		"Armorer"
+    }
+	"Armorer Desc"
+    {
+        "es"		"Posee la mejor armadura, y es capaz de apresurar la recuperacion de armadura aliada.\nSin embargo, se mueve mas lento, y recibe menos curacion/overheal.\n⛉ es el simbolo que representa la armadura."
+		"en"		"Has the best armor, and is capable of hastening ally armor cooldowns.\nHowever, an armorer moves slower, and recieves less healing/overheal.\n⛉ is the symbol that represents armor."
+    }
+	"Armorer Desc 1"
+    {
+        "es"		"{gray}[ARMERO]: {yellow}⛉ (RES): +85％ | (TOTAL): 80％ HP max. | (CD): 2s si no te pegan.\n{red}-20％ SPD, recibes -50％ curacion/overheal.\n{lime}Si tu ⛉ se rompe, te vuelves inmune por 2s (CD: 15s)\n{lime}Aliados cercanos recuperan ⛉ mas pronto.\n{white}RELOAD: {lime}Restaura 50％ de ⛉ a aliados cercanos."
+		"en"		"{gray}[ARMORER]: {yellow}⛉ (DEF): +85％ | (TOTAL): 80％ max HP. | (CD): 2s if not hurt.\n{red}-20％ SPD, gain -50％ healing/overheal.\n{lime}If your ⛉ breaks, become immune por 2s (CD: 15s)\n{lime}Nearby allies recover ⛉ sooner.\n{white}RELOAD: {lime}Restores 50％ ⛉ to nearby allies."
+    }
+	"Crew Chief"
+    {
+        "es"		"Comandante"
+		"en"		"Crew Chief"
+    }
+	"Crew Chief Desc"
+    {
+        "es"		"Se fortalece entre mas aliados tenga alrededor.\nPosee dos habilidades para potenciar y defender a sus aliados.\nSin embargo, un Comandante solitario es muy debil."
+		"en"		"Becomes stronger the more allies are nearby.\nHas two abilities that can boost and defend nearby allies.\nHowever, a lonely Crew Chief is very weak."
+    }
+	"Crew Chief Desc 1"
+    {
+        "es"		"{crimson}[COMANDANTE]: {lime}+15％ HP MAX, Obten RES y DMG entre mas aliados esten cerca tuyo.\n{white}RELOAD: {lime}Potencia DMG y ATKSPD de ti y aliados cercanos en un +10％.\n{white}M3/SPECIAL: {yellow}Recibes un 35％ del DMG que reciban tus aliados cercanos."
+		"en"		"{crimson}[CREW CHIEF]: {lime}+15％ MAX HP, Gain RES and DMG the more allies are near you.\n{white}RELOAD: {lime}Boosts DMG + ATKSPD of you and nearby allies by +10％.\n{white}M3/SPECIAL: {yellow}Take 35％ of the damage dealt to nearby allies."
+    }
+	"Gambler"
+    {
+        "es"		"Apostador"
+		"en"		"Gambler"
+    }
+	"Gambler Desc"
+    {
+        "es"		"Depende puramente de su suerte para poder salir adelante.\nCon suficiente suerte, un Apostador puede acumular bonuses duraderos.\nSin embargo, la precision requerida es mucha..."
+		"en"		"Relies purely on their luck to overcome difficulties.\nWith enough luck, a Gambler can stack many long bonuses.\nHowever, the precision needed is extremely high..."
+    }
+	"Gambler Desc 1"
+    {
+        "es"		"{community}[APOSTADOR]: {yellow}TRAGAPERRAS (HUD): Tienes 3 valores (1-7) que paras con RELOAD uno por uno.\n{lime}Obtener 3 del mismo numero te dara un boost con valores de referencia al mismo!\n{red}Usar el tragaperras muy rapido lo rompera y pondra en cooldown."
+		"en"		"{community}[GAMBLER]: {yellow}SLOT MACHINE (HUD): You have 3 values (1-7) that you can stop with RELOAD one by one.\n{lime}Getting 3 of the same number grants a boost with values specific to it!\n{red}Using the slot machine too quickly temporarily breaks it."
+    }
+	"Maniac"
+    {
+        "es"		"Maniaco"
+		"en"		"Maniac"
+    }
+	"Maniac Desc"
+    {
+        "es"		"A pesar de la situacion, a un Maniaco se le da mas hacerlo a la bruta.\nCon suficiente fuerza bruta, todo es posible para un Maniaco.\nPero se debe mantener agresivo para conservar esa fuerza."
+		"en"		"Despite the situation, a Maniac always applies brute force.\nWith enough of it, a Maniac can do anything.\nBut to keep that strength, they have to be always aggressive."
+    }
+	"Maniac Desc 1"
+    {
+        "es"		"{orange}[MANIACO]: {yellow}⛉ (RES): +65％ | (TOTAL): 35％ HP max. | (CD): 3s si no te pegan.\n{red}Recibes -35％ curacion, {lime}Hacer DMG = 1 HISTERIA y +10％ RES; {red}de lo contrario recibe +10％ VULN.\n{orange}HISTERIA: {lime}Otorga 1％ de RES cada 30 de Histeria, {red}decae rapido si no infliges DMG."
+		"en"		"{orange}[MANIAC]: {yellow}⛉ (DEF): +65％ | (TOTAL): 35％ max HP. | (CD): 3s if not hurt.\n{red}Recieve -35％ healing, {lime}Deal DMG = +10％ RES & +1 HYSTERIA, {red}otherwise recieve +10％ VULN.\n{orange}HYSTERIA: {lime}Grants 1％ RES per 30 Hysteria, {red}decays quickly if you do not deal DMG."
+    }
+	"Maniac Desc 2"
+    {
+        "es"		"{white}Posees una habilidad usable con RELOAD: {yellow}Pausa la decaida de Histeria, pero la duplica al cabo de 4s.\n{lime}Reduce el CD en -0.5s al matar."
+		"en"		"{white}You have a RELOAD ability: {yellow}Stops Hysteria decay but doubles it after a bit.\n{lime}-0.5s CD reduction on kill."
+    }
+	"Tag Team"
+    {
+        "es"		"Equipo de Lucha"
+		"en"		"Tag Team"
+    }
+	"Tag Team Desc"
+    {
+        "es"		"Un Equipo de Lucha consiste de 2 personas.\nSi estas se cuidan entre si, seran capaces de hacerlo todo.\nLuchando juntos fortalecera su vinculo y a ellos."
+		"en"		"A Tag Team consists of 2 people.\nIf these care about each other, they'll be capable of doing everything.\nFighting together will strengthen their bond and themselves."
+    }
+	"Tag Team Desc 1"
+    {
+        "es"		"{selfmade}[EQUIPO DE LUCHA]: {lime}+20％ HP MAX, {red}recibes -35％ de curacion y -50％ overheal.\n{lime}Acercarte al objetivo marcado te dara +3％ HP/s.\n{white}RELOAD: {lime}Marca al objetivo que mires (usar 2 veces), creando un vinculo.\n{lime}Reduce el CD de tu habilidad RELOAD en 1s al matar."
+		"en"		"{selfmade}[TAG TEAM]: {lime}+20％ MAX HP, {red}recieve -35％ healing & -50％ overheal.\n{lime}Standing near the marked target grants +3％ HP/s.\n{white}RELOAD: {lime}Marks the target you look at (use twice), creating a bond.\n{lime}Reduces your RELOAD ability's CD by 0.5s on kill."
+    }
+	"Tag Team Desc 2"
+    {
+        "es"		"{white}M3/SPECIAL: {lime}Triplica y el efecto de tu pasiva, y te permite compartirla con tu objetivo marcado.\n{white}VINCULO: {yellow}Kills de Objetivo {white}= {lime}ambos ganan 8HP y agrega 2s al tiempo de vinculo.\n{yellow}Tus Kills {white}= {lime}ambos ganan 16HP y 2s de +10％ RES."
+		"en"		"{white}M3/SPECIAL: {lime}Triples the effect of your passive, and you're able to share it with your marked objective.\n{white}BOND: {yellow}Target Kills {white}= {lime}both gain 8HP & adds 2s to the bond time.\n{yellow}Your Kills {white}= {lime}both regen 16HP & gain 2s of +10％ RES."
+	}
+	"Stoic"
+    {
+        "es"		"Estoico"
+		"en"		"Stoic"
+    }
+	"Stoic Desc"
+    {
+        "es"		"Un muro irrompible de resolucion y calma.\nCapaz de superar situaciones que pondrian nerviosos al resto, llevando al panico.\nCon tragos controlados, el dolor y las heridas se desvaneceran casi al instante."
+		"en"		"An unbreakable wall of calm and resolve.\nCapable of overcoming situations that would make others get nervous and panic.\nWith controlled drinks, the pain and wounds will vanish in an instant."
+    }
+	"Stoic Desc 1"
+    {
+        "es"		"{lightskyblue}[ESTOICO]: {lime}+125％ HP MAX, {red}recibes -75％ de curacion, -100％ overheal y haces -10％ DMG.\n{lime}Recibes -75％ de DMG, {red}recibe 10％ del DMG reducido (DMG pendiente) cada seg.\n{white}PERDURACION: {lime}El DMG pendiente es negado, 50％ del DMG negado se vuelve HP."
+		"en"		"{lightskyblue}[STOIC]: {lime}+125％ MAX HP, {red}recieve -75％ healing, -100％ overheal & deal -10％ DMG.\n{lime}Take -75％ DMG, {red}10％ of the reduced DMG (pending DMG) is applied every sec.\n{white}ENDURE: {lime}Pending DMG is negated, 50％ of the negated DMG turns into HP."
+    }
+	"Stoic Desc 2"
+    {
+        "es"		"{lime}Regeneras +2.5％ HP/s si no tienes DMG pendiente.\n{lime}No recibir DMG por 4s al tener DMG pendiente activara Perduracion.\n{white}RELOAD: {lime}Activa Perduracion, gana 1s de anti-empuje y +15％ RES.{lime}Reduce el CD de tu habilidad RELOAD en 1s al matar."
+		"en"		"{lime}You regenerate +2.5％ HP/s if you have no pending DMG.\n{lime}Taking no DMG for 4s while having pending DMG triggers Endure.\n{white}RELOAD: {lime}Activates Endure, gain 1s anti-knockback and +15％ RES.\n{lime}Reduces your RELOAD ability's CD by 1s on kill."
+    }
+}

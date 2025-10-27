@@ -10,6 +10,8 @@
 #include <tf_econ_data>
 #include <dhooks>
 #include <morecolors>
+#include <tf2utils>
+//#include "vscript.sp"
 
 #undef REQUIRE_EXTENSIONS
 #tryinclude <tf2items>
@@ -21,6 +23,8 @@
 
 #define PLUGIN_VERSION				"4.7.5"
 #define PLUGIN_VERSION_REVISION		"SVL"
+
+#define MAXENTITIES 2048
 
 #define MAX_ATTRIBUTES_PER_ITEM		20
 #define MAX_CONTROL_POINTS			8
@@ -429,8 +433,6 @@ ConVar g_cvJockeyMovementAttacker;
 ConVar g_cvFrenzyTankChance;
 ConVar g_cvFrenzyRespawnStress;
 ConVar g_cvStunImmunity;
-ConVar g_cvLastStandKingRuneDuration;
-ConVar g_cvLastStandDefenseDuration;
 ConVar g_cvDispenserAmmoCooldown;
 ConVar g_cvDispenserAmmoMax;
 ConVar g_cvDispenserHealRate;
@@ -583,7 +585,30 @@ Cookie g_cWeaponsCalled;
 //SDK offsets
 int g_iOffsetItemDefinitionIndex;
 
+// Other
+#define SPRITE			   "materials/sprites/laserbeam.vmt"
+#define HALO			   "materials/sprites/halo01.vmt"
+#define GLOW			   "materials/sprites/glow01.vmt"
+int BEAM_SPRITE = -1;
+int HALO_SPRITE = -1;
+int GLOW_SPRITE = -1;
+bool b_IsEntityNeverTranmitted[MAXPLAYERS+1];
+Handle g_hSetLocalOrigin;
+float SVL_DamageDealt[MAXPLAYERS+1];
+float SVL_DamageTaken[MAXPLAYERS+1];
+
+#include "szf/servilive/armor.sp"
+#include "szf/servilive/perk_decks.sp"
+#include "szf/servilive/perks/mercenary.sp"
+#include "szf/servilive/perks/crewchief.sp"
+#include "szf/servilive/perks/armorer.sp"
+#include "szf/servilive/perks/gambler.sp"
+#include "szf/servilive/perks/stoic.sp"
+#include "szf/servilive/perks/tagteam.sp"
+#include "szf/servilive/perks/maniac.sp"
+
 #include "szf/sound.sp"
+#include "szf/servilive/status_effects.sp"
 
 #include "szf/classes.sp"
 #include "szf/command.sp"
@@ -678,6 +703,16 @@ public void OnPluginStart()
 	delete hSDKHooks;
 	delete hTF2;
 	delete hSZF;
+
+	GameData gamedata = LoadGameConfigFile("zombie_riot");
+	StartPrepSDKCall(SDKCall_Entity);
+	PrepSDKCall_SetFromConf(gamedata, SDKConf_Signature, "CBaseEntity::SetLocalOrigin");
+	PrepSDKCall_AddParameter(SDKType_Vector, SDKPass_ByRef);
+	g_hSetLocalOrigin = EndPrepSDKCall();
+	if(!g_hSetLocalOrigin)
+		LAPUTAMADREEEEEE("CBaseEntity::SetLocalOrigin");
+
+	delete gamedata;
 	
 	Command_Init();
 	Config_Init();
@@ -685,6 +720,20 @@ public void OnPluginStart()
 	ConVar_Init();
 	Event_Init();
 	Weapons_Init();
+	Armor_Init();
+	Perk_Init();
+	InitStatusEffects();
+
+	//VScript_OnPluginStart();
+
+	// Perk Decks
+	Mercenary_SetName();
+	CrewChief_SetName();
+	Stoic_SetName();
+	TagTeam_SetName();
+	Maniac_SetName();
+	Gambler_SetName();
+	Armorer_SetName();
 	
 	//Incase of late-load
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
@@ -765,6 +814,11 @@ public void OnConfigsExecuted()
 public void OnMapStart()
 {
 	g_iRoundTimestamp = GetTime();
+
+	BEAM_SPRITE	  = PrecacheModel(SPRITE);
+	HALO_SPRITE	  = PrecacheModel(HALO);
+	GLOW_SPRITE	  = PrecacheModel(GLOW);
+	PerkDeck_OnMapStart();
 }
 
 public void OnMapEnd()
@@ -853,6 +907,9 @@ public void OnEntityCreated(int iEntity, const char[] sClassname)
 	
 	DHook_OnEntityCreated(iEntity, sClassname);
 	SDKHook_OnEntityCreated(iEntity, sClassname);
+
+	if(iEntity > 0 && iEntity < MAXENTITIES)
+		StatusEffectReset(iEntity, true);
 	
 	if (StrEqual(sClassname, "tf_dropped_weapon") || StrEqual(sClassname, "item_powerup_rune"))	//Never allow dropped weapon and rune dropped from survivors
 		RemoveEntity(iEntity);
@@ -862,6 +919,9 @@ public void OnEntityDestroyed(int iEntity)
 {
 	if (!g_bEnabled || iEntity == INVALID_ENT_REFERENCE)
 		return;
+
+	if(iEntity > 0 && iEntity < MAXENTITIES)
+		Attributes_EntityDestroyed(iEntity);
 	
 	EntityKilled_HitDetectionCooldown(iEntity);
 	
@@ -1074,7 +1134,7 @@ public Action Timer_Progress(Handle hTimer) //6 seconds
 // Aperiodic Timer Callbacks
 //
 ////////////////////////////////////////////////////////////
-public Action Timer_GraceStartPost(Handle hTimer)
+public Action  Timer_GraceStartPost(Handle hTimer)
 {
 	//Disable all resupply cabinets.
 	int iEntity = -1;
@@ -1101,6 +1161,18 @@ public Action Timer_GraceStartPost(Handle hTimer)
 		Sound_PlayMusicToTeam(TFTeam_Survivor, "start");
 	else
 		Sound_PlayMusicToTeam(TFTeam_Survivor, "saferoom");
+
+	for(int client=1; client<=MaxClients; client++)
+	{
+		if(IsValidMulti(client, false, false, true, true, true))
+		{
+			User_ArmorStats[client].client = client;
+			User_PerkStats[client].client = client;
+			User_PerkStats[client].PerkSelectNumber = 1;
+			User_PerkStats[client].IsSelecting = true;
+			CreateTimer(0.1, Perk_ShowSelectionMenu, GetClientUserId(client), TIMER_REPEAT|TIMER_FLAG_NO_MAPCHANGE);
+		}
+	}
 	
 	return Plugin_Continue;
 }
@@ -1817,9 +1889,15 @@ void CheckLastSurvivor(int iIgnoredClient = 0)
 	if (!iLastSurvivor)
 		return;
 	
-	TF2_AddCondition(iLastSurvivor, TFCond_KingRune, g_cvLastStandKingRuneDuration.FloatValue);
-	TF2_AddCondition(iLastSurvivor, TFCond_DefenseBuffNoCritBlock, g_cvLastStandDefenseDuration.FloatValue);
-	SetEntityHealth(iLastSurvivor, SDKCall_GetMaxHealth(iLastSurvivor));
+	SelfHealClient(iLastSurvivor, 9999.0, 2.0, true, true, false);
+	if(User_PerkStats[iLastSurvivor].Current_PerkDeck == Deck_Mercenary)
+	{
+		ApplyStatusEffect(iLastSurvivor, iLastSurvivor, "Last Merc Standing", 999.0);
+	}
+	else
+	{
+		ApplyStatusEffect(iLastSurvivor, iLastSurvivor, "Last Man Standing", 999.0);
+	}
 	
 	g_bLastSurvivor = true;
 	
@@ -2741,6 +2819,8 @@ public Action OnPlayerRunCmd(int iClient, int &iButtons, int &iImpulse, float fV
 {
 	if (!g_bEnabled)
 		return Plugin_Continue;
+
+	DebuffWorldTextUpdate(iClient);
 	
 	// Also make the think function callback available for everyone, not just zombies. Who knows if the mercs might need it for something.
 	if (g_ClientClasses[iClient].callback_think != INVALID_FUNCTION)
@@ -2757,6 +2837,11 @@ public Action OnPlayerRunCmd(int iClient, int &iButtons, int &iImpulse, float fV
 		//Block the primary or secondary attack
 		iButtons &= ~IN_ATTACK;
 		iButtons &= ~IN_ATTACK2;
+	}
+
+	if(IsValidClient(iClient))
+	{
+		PerkDecks_RunCmd(iClient, iButtons);
 	}
 	
 	return Plugin_Continue;
